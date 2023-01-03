@@ -1,0 +1,137 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "./build.ps1",
+            "options": {
+                "cwd": "./build"
+            },
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$node-sass",
+                "$eslint-compact",
+                "$msCompile"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false,
+                "group": "build"
+            }
+        },
+        {
+            "label": "buildDebug",
+            "command": "./build.ps1 -Configuration Debug -SkipFormat -SkipOutdated -SkipTest -SkipPublish",
+            "options": {
+                "cwd": "./build"
+            },
+            "type": "shell",
+            "group": "test",
+            "problemMatcher": [
+                "$node-sass",
+                "$eslint-compact",
+                "$msCompile"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false,
+                "group": "build"
+            }
+        },
+        {
+            "label": "testServer",
+            "command": "./build.ps1 -Configuration Debug -SkipFormat -SkipOutdated -SkipClient -SkipPublish",
+            "options": {
+                "cwd": "./build"
+            },
+            "type": "shell",
+            "group": "test",
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false,
+                "group": "test"
+            }
+        },
+        {
+            "label": "watchClient",
+            "command": "./watchClient.ps1",
+            "options": {
+                "cwd": "./build"
+            },
+            "type": "shell",
+            "group": "test",
+            "problemMatcher": [
+                "$node-sass",
+                "$eslint-compact"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false,
+                "group": "watch"
+            }
+        },
+        {
+            "label": "watchServer",
+            "command": "./watchServer.ps1",
+            "options": {
+                "cwd": "./build"
+            },
+            "type": "shell",
+            "group": "test",
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false,
+                "group": "watch"
+            }
+        },
+        {
+            "label": "watchServerTest",
+            "command": "./watchServerTest.ps1",
+            "options": {
+                "cwd": "./build"
+            },
+            "type": "shell",
+            "group": "test",
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false,
+                "group": "watch"
+            }
+        },
+    ]
+}

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VitasticCore.SharedKernal\VitasticCore.SharedKernal.csproj" />
+  </ItemGroup>
+
+<ItemGroup Label="nesting">
+	<None Update="Events\Customers\GetCustomer.Request.cs">
+		<DependentUpon>GetCustomer.cs</DependentUpon>
+	</None>
+	<None Update="Events\Customers\GetCustomer.Response.cs">
+		<DependentUpon>GetCustomer.cs</DependentUpon>
+	</None>	
+</ItemGroup>
+
+
+</Project>

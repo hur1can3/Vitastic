@@ -1,0 +1,46 @@
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
+WORKDIR /app
+
+# Install Node in the build container
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+  && apt-get update \
+  && apt-get install -y nodejs
+  && corepack enable
+  && npm i -g corepack
+  && corepack prepare yarn@stable --activate
+
+# Copy build scripts first
+COPY ./build/ ./build
+
+# Copy files that will restore dependencies.
+COPY ./*.sln ./
+
+COPY ./.config/ ./.config
+COPY ./nuget.config ./
+
+COPY ./src/*/*.csproj ./
+RUN for file in $(ls *.csproj); do mkdir -p ./src/${file%.*}/ && mv $file ./src/${file%.*}/; done
+
+COPY ./tests/*/*.csproj ./
+RUN for file in $(ls *.csproj); do mkdir -p ./tests/${file%.*}/ && mv $file ./tests/${file%.*}/; done
+
+COPY ./src/Vitastic.Web/ClientApp/package.json ./src/Vitastic.Web/ClientApp/
+COPY ./src/Vitastic.Web/ClientApp/package-lock.json ./src/Vitastic.Web/ClientApp/
+
+# Restore dependencies.
+RUN cd ./src/Vitastic.Web/ClientApp && npm install --no-audit
+RUN dotnet restore
+
+# Copy everything to the build container
+COPY ./ ./
+
+# Build the app
+RUN pwsh ./build/build.ps1
+
+# Copy output from the build container to the run container
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
+ARG env="Production"
+WORKDIR /app
+COPY --from=build-env /app/artifacts/dist/release .
+ENV ASPNETCORE_ENVIRONMENT=$env
+ENTRYPOINT ["dotnet", "Vitastic.Web.dll"]/./
