@@ -1,23 +1,39 @@
-﻿using System.Globalization;
+﻿using FastEndpoints;
+using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using System.Globalization;
 using Vitastic.Domain.Data;
 using Vitastic.Domain.Data.Models;
 using Vitastic.Domain.Data.Queries;
-using VitasticCore.SharedKernal.Events;
 using VitasticCore.SharedKernal.Functional;
+using VitasticCore.SharedKernal.Responses.Collections;
 using VitasticCore.SharedKernal.Responses.Messages;
 
-namespace Vitastic.Domain.Events.Recipes;
+namespace Vitastic.Domain.Endpoints.Recipes;
 
-public class SaveRecipeHandler : EventHandlerAbstract<SaveRecipeRequest, EntityMessage<int>>
+public class SaveRecipe : Endpoint<SaveRecipeRequest, IResult<EntityMessage<int>>, SaveRecipeMapper>
 {
     private readonly IFoodStuffsData _data;
 
-    public SaveRecipeHandler(IFoodStuffsData data)
+    public SaveRecipe(IFoodStuffsData data)
     {
         _data = data;
     }
 
-    public override async Task<IResult<EntityMessage<int>>> Handle(SaveRecipeRequest request, CancellationToken cancellationToken = default)
+
+    public override void Configure()
+    {
+        Post("/recipes");
+        Description(b => b
+                //.Produces<IItemSet<IFailure>>(400, "application/json")
+                .Produces<EntityMessage<int>>(200));
+
+        PreProcessors(new SaveRecipeRequestLogger());
+        PostProcessors(new EntityMessageResponseLogger<SaveRecipeRequest, IResult<EntityMessage<int>>>());
+      
+    }
+
+    public override async Task HandleAsync(SaveRecipeRequest request, CancellationToken cancellationToken)
     {
         var byId = new RecipesByIdWithCategoriesAndImagesSpecification(request.Id);
 
@@ -26,30 +42,24 @@ public class SaveRecipeHandler : EventHandlerAbstract<SaveRecipeRequest, EntityM
 
         if (maybeRecipe.HasValue)
         {
-            return await maybeRecipe.Value
-                .Tee(r => Transfer(request, r))
+            var responseUpdated = await maybeRecipe.Value
                 .TeeAsync(r => _data.Recipes.Update(r, cancellationToken))
                 .TeeAsync(r => ManageCategories(request, r, cancellationToken))
-                .MapAsync(r => Ok(EntityMessage.Create("Recipe updated.", r.Id)))
+                .MapAsync(r => Result.Ok(Map.FromEntity(r)))
                 .ConfigureAwait(false);
+            await SendAsync(responseUpdated);
+
         }
 
-        return await new Recipe()
-            .Tee(r => Transfer(request, r))
+        var responseCreated = await Map.ToEntityAsync(request, cancellationToken)
             .TeeAsync(r => _data.Recipes.Add(r, cancellationToken))
             .TeeAsync(r => ManageCategories(request, r, cancellationToken))
-            .MapAsync(r => Ok(EntityMessage.Create("Recipe added.", r.Id)))
+            .MapAsync(r => Result.Ok(Map.FromEntity(r)))
             .ConfigureAwait(false);
+
+        await SendAsync(responseCreated);
     }
 
-    private static void Transfer(SaveRecipeRequest request, Recipe recipe)
-    {
-        recipe.Name = request.Name;
-        recipe.Ingredients = request.Ingredients;
-        recipe.Directions = request.Directions;
-        recipe.CookTimeMinutes = request.CookTimeMinutes;
-        recipe.PrepTimeMinutes = request.PrepTimeMinutes;
-    }
 
     private async Task ManageCategories(SaveRecipeRequest request, Recipe recipe, CancellationToken cancellationToken)
     {
@@ -94,4 +104,7 @@ public class SaveRecipeHandler : EventHandlerAbstract<SaveRecipeRequest, EntityM
             .TeeAsync(r => _data.CategoryRecipes.AddRange(r, cancellationToken))
             .ConfigureAwait(false);
     }
+
+
 }
+

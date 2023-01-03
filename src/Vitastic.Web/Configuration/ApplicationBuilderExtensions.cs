@@ -12,7 +12,7 @@ public static class ApplicationBuilderExtensions
         }
 
         return app
-            .UseSwagger()
+            //.UseSwagger()
             .UseSwaggerUI(c => c.DocumentTitle = environment.ApplicationName + " API");
     }
 

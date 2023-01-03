@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -7,17 +7,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Endpoints\Recipes\ListRecipe.request.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Endpoints\Recipes\ListRecipes.request.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\VitasticCore.SharedKernal\VitasticCore.SharedKernal.csproj" />
   </ItemGroup>
 
-<ItemGroup Label="nesting">
-	<None Update="Events\Customers\GetCustomer.Request.cs">
-		<DependentUpon>GetCustomer.cs</DependentUpon>
-	</None>
-	<None Update="Events\Customers\GetCustomer.Response.cs">
-		<DependentUpon>GetCustomer.cs</DependentUpon>
-	</None>	
-</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="5.6.0" />
+    <PackageReference Include="FastEndpoints.Attributes" Version="5.6.0" />
+  </ItemGroup>
 
 
 </Project>
